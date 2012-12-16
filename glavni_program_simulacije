@@ -1,0 +1,312 @@
+#include<iostream>
+#include<cstring>
+#include<cstdlib>
+#include<windows.h>
+#include<ctime>
+#include"red_polja.h"
+int datum_today[3];
+bool generirane=false;
+//#include"red_pokazivaci.h"
+int brojac=0;
+int postotak;
+using namespace std;
+bool _datum(char datum[],int key=0){
+  int da[3];
+	char cgod[5],cmje[3],cdan[3];
+    for(int i=0;i<4;i++)
+            cgod[i]=datum[i+6];
+    for(int i=0;i<2;i++)
+            cmje[i]=datum[i+3];
+    for(int i=0;i<2;i++)
+            cdan[i]=datum[i];
+    if(key!=0){
+    	datum_today[0]=atoi(cdan);
+    	datum_today[1]=atoi(cmje);
+    	datum_today[2]=atoi(cgod);
+}
+	else{
+		da[0]=atoi(cdan);
+    	da[1]=atoi(cmje);
+    	da[2]=atoi(cgod);
+		int razlika=datum_today[2]-da[2];
+        if(razlika>30)
+                return false;
+        else if(razlika==30)
+        	if(da[1]<datum_today[1])
+        		return false;
+        	else if(da[1]==datum_today[1])
+        		if(da[0]<=datum_today[0])
+        			return false;
+        		else
+        			return true;
+        	else
+        		return true;
+		else 
+         return true;
+    }
+}
+elem _generiranje_datuma(elem klijent){
+	for(int i=0;i<10;i++)
+		if(i==2 || i==5)
+			klijent.datum[i]='/';
+		else if(i==0)
+			klijent.datum[i]=char(rand()%2+49);
+		else if(i==1 || i==4)
+			klijent.datum[i]=char(rand()%10+48);
+		else if(i==3)
+			klijent.datum[i]=char(48);
+		else if(i==6){
+			klijent.datum[i++]=char(49);
+			klijent.datum[i++]=char(57);
+			klijent.datum[i++]=char(rand()%8+49);
+			klijent.datum[i]=char(rand()%9+48);
+		}
+		klijent.datum[10]='\0';
+	return klijent;
+}
+elem _generiranje_samostalno(elem klijent){
+	rand();
+	int i;
+	klijent.ime[0]=char(rand()%26+65);
+	for(i=1;i<10;i++)
+		klijent.ime[i]=char(rand()%26+97);
+	klijent.ime[10]='\0';	
+	klijent.prezime[0]=char(rand()%26+65);
+	for(i=1;i<15;i++)
+		klijent.prezime[i]=char(rand()%26+97);
+	klijent.prezime[15]='\0';
+	klijent.tekuci=rand()%15000;
+	klijent.devizni=rand()%2000;
+	klijent=_generiranje_datuma(klijent);
+	return klijent;
+}
+void _generiranje_cetvorki(tred *red){
+	elem klijent;
+	for(int i=0;i<brojac;i++){
+		klijent.ai=rand()%401+100;
+		klijent.bi=rand()%401+100;
+		if(i==0){
+			klijent.ci=4;
+			klijent.di=1;
+		}
+		else if(i==1){
+			klijent.ci=1;
+			klijent.di=2;
+		}
+		else
+			do{
+				klijent.ci=rand()%6+1;
+				klijent.di=rand()%4+1;
+			}while(klijent.ci==6 && (klijent.di==2 || klijent.di==4));
+		EnQueueQ(klijent,red);
+	}
+}
+tred *_napravi_20(tred *red){
+	rand();
+	elem klijent;
+	for(int i=0;i<20;i++){
+		klijent.ai=rand()%401+100;
+		klijent.bi=rand()%401+100;
+		do{
+			klijent.ci=rand()%6+1;
+			klijent.di=rand()%4+1;
+		}while(klijent.ci==6 && (klijent.di==2 || klijent.di==4));
+		klijent=_generiranje_samostalno(klijent);
+		if(i<5)
+			klijent.di=1;
+		else if(i>=5 && i<10)
+			klijent.di=2;
+		else if(i>=10 && i<15)
+			klijent.di=3;
+		else 
+			klijent.di=4;
+		EnQueueQ(klijent,red);
+		}
+	return red;
+}
+void _ispis(elem klijent){
+	cout<<"\na1: "<<klijent.ai<<"\nbi: "<<klijent.bi<<"\nci: "<<klijent.ci<<"\ndi: ";
+	cout<<klijent.di<<"\nIme: "<<klijent.ime<<"\nPrezime: "<<klijent.prezime<<"\nDatum rodenja: ";
+	cout<<klijent.datum<<"\nTekuci: "<<klijent.tekuci<<" HRK"<<"\nDevizni: "<<klijent.devizni<<" USD"<<endl;
+	cout<<"-------------------\n";
+}
+void dodavanje_podataka(tred *red){
+	elem klijent;
+	for(int i=0;i<brojac;i++){
+		klijent=FrontQ(red);
+		DeQueueQ(red);
+		klijent=_generiranje_samostalno(klijent);
+		if(i==0){
+			klijent.tekuci=55;
+			strcpy(klijent.ime,"Alen\0");
+		strcpy(klijent.datum,"01.10.1992\0");
+		}
+		else if(i==1)
+			klijent.devizni=6000;
+	    EnQueueQ(klijent,red);
+	}
+}
+void provjera(int N,tred *red){
+	elem klijent;
+	for(int i=0;i<N;i++){
+		klijent=FrontQ(red);
+		DeQueueQ(red);
+		_ispis(klijent);
+		EnQueueQ(klijent,red);
+	}
+}
+tred *_razmjestaj(tred *red){
+	tred *p1=InitQ(p1);
+	dodavanje_podataka(red);
+	int stanje=brojac;
+	elem klijent;
+	for(int i=1;i<7;i++){
+		int p=stanje;
+		for(int j=0;j<p;j++){
+			klijent=FrontQ(red);
+			DeQueueQ(red);
+			if(klijent.ci==i){
+				EnQueueQ(klijent,p1);
+				stanje--;
+				if((klijent.devizni*5.76)>10000)
+					_ispis(klijent);
+			}
+			else
+				EnQueueQ(klijent,red);
+		}
+	}
+	return p1;
+}
+tred *_brzi_red(tred *glavni){
+	tred *brzi=InitQ(brzi);
+	elem klijent;
+	int br=0,gl=0;
+	for(int i=0;i<brojac;i++){
+		klijent=FrontQ(glavni);
+		DeQueueQ(glavni);
+		if(klijent.di==3){
+			EnQueueQ(klijent,brzi);
+			br++;
+			}
+		else{
+			EnQueueQ(klijent,glavni);
+			gl++;
+	}
+	}
+	cout<<"\nStanje u glavnom redu\n------------------\n";
+	provjera(gl,glavni);
+	cout<<"\nStanje u brzom redu\n-------------------\n";
+	provjera(br,brzi);
+	brojac=gl;
+	return glavni;
+}
+tred *_vip(tred *red){
+	elem klijent;
+	int N=brojac;
+	for(int i=0;i<N;i++){
+		klijent=FrontQ(red);
+		DeQueueQ(red);
+		if(!(klijent.ci==4 && klijent.di==1 && klijent.tekuci<100 && _datum(klijent.datum))&& !(klijent.ci==1 && klijent.di==2 && (klijent.tekuci>5000 || (klijent.devizni*5.76)>5000)))
+			EnQueueQ(klijent,red);
+		else
+			brojac--;
+	}
+	return red;
+}
+void _rekurzija(int N, tred *glavni, tred *novi){
+	if(N==0-postotak)
+		return;
+	elem klijent;
+	klijent=FrontQ(glavni);
+	DeQueueQ(glavni);
+	if(N>0)
+		EnQueueQ(klijent,glavni);
+	_rekurzija(N-1,glavni,novi);
+	if(postotak-->=0)
+		EnQueueQ(klijent,novi);
+}
+int main(){
+	srand(time(0));
+	rand();
+	tred *glavni=InitQ(glavni);
+	int izbor;
+	int N;
+	char datum_danasnji[12];
+	cout<<"Simulacija reda u banci\n------------------\nUnesite broj klijenata (generirati ce se i dodatnih 20 klijenata): ";
+	cin>>brojac;
+	cout<<"\nDanasnji datum: (DD/MM/YYYY): ";
+	cin.ignore();
+	cin.getline(datum_danasnji,12);
+	_datum(datum_danasnji,2);
+	do{
+		cout<<"\nIzbornik\n---------------\n1. Generiranje cetvorki\n2. Generiranje klijenata te razjestaj u redu prema prioritetima\n3. Simulacija brzog reda\n4. Izbacivanje VIP klijenata i umirovljenika\n5. Otvaranje novog reda (odlazi 30% iz glavnog)\n6. Stanje glavnog reda\n-------------------\nVas odabir: ",cin>>izbor;
+		switch(izbor){
+			case 1: if(!IsEmptyQ(glavni))
+						cout<<"\nCetvorke su vec generirane\n";
+					else
+						_generiranje_cetvorki(glavni);
+					break;
+			case 2: {
+					if(IsEmptyQ(glavni))
+							cout<<"\nNiste generirali cetvorke\n";
+					else{
+						glavni=_napravi_20(glavni);
+						brojac=brojac+20;
+						cout<<"\nKlijenti sa stanjem deviznog racuna vecim od 10000 HRK\n---------------------------\n";
+						glavni=_razmjestaj(glavni);
+						generirane=true;
+						}
+					break;
+				}
+			case 3: if(IsEmptyQ(glavni))
+						cout<<"\nRed je prazan\n";
+					else if(!generirane)
+						cout<<"\nnisu unesena obiljezja\n";
+					else
+						glavni=_brzi_red(glavni);
+					break;
+			case 4: if(IsEmptyQ(glavni))
+						cout<<"\nRed je prazan\n";
+					else if(!generirane)
+						cout<<"\nNisu unesena obiljezja\n";
+					else{
+						glavni=_vip(glavni);
+						cout<<"\nTrenutno stanje u redu\n---------------------\n";
+						provjera(brojac,glavni);
+						}
+					break;
+			case 5: {
+					if(IsEmptyQ(glavni))
+						cout<<"\nRed je prazan\n";
+					else if(!generirane)
+						cout<<"\nNisu unesena obiljezja\n";
+					else{
+						cout<<"\nOTVARANJE NOVOG REDA\n--------------------\nStanje u novom redu\n------------------\n";
+  						tred *novi=InitQ(novi);
+  						float p=(float)brojac/100;
+  						postotak=p*30;
+  						int pos=postotak;
+  						_rekurzija(brojac-postotak,glavni,novi);
+  						brojac=brojac-pos;
+  						provjera(pos,novi);
+  					}
+					break;
+		}
+			case 6: if(IsEmptyQ(glavni))
+						cout<<"\nRed je prazan\n";
+					else if(!generirane)
+						cout<<"\nNisu unesena obiljezja\n";
+					else{
+						cout<<"\nSTANJE U GLAVNOM REDU\n-----------------\n";
+						provjera(brojac,glavni);
+						}
+					break;
+			case 9: cout<<"\nKraj programa\n";
+					break;
+			default: cout<<"\nKRIVI UNOS\n";
+			}
+			
+	}while(izbor!=9);
+system("pause");
+return 0;
+}
