@@ -15,8 +15,12 @@ elem FrontQ(tred *X){
 	return X->korisnik[X->front];
 }
 void EnQueueQ(elem e,tred *X){
-	X->rear=AddOne(X->rear);
-	X->korisnik[X->rear]=e;
+	if(AddOne(AddOne(X->rear))==X->front)
+                 std::cout<<"Red je pun"<<std::endl;
+        else{
+		X->rear=AddOne(X->rear);
+		X->korisnik[X->rear]=e;
+        }
 }
 void DeQueueQ(tred *X){
 	X->front=AddOne(X->front);
